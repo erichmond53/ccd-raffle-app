@@ -161,7 +161,10 @@ class CCD_Raffle_App_Api {
 
             $results[] = array(
                 'event_id'     => $event->ID,
-                'title'        => get_the_title( $event->ID ),
+                // get_the_title() runs titles through display filters (wptexturize etc.)
+                // meant for HTML pages -- those can leave literal entities like "&#8211;"
+                // in the string, which is wrong for a JSON API. Decode them back to plain text.
+                'title'        => html_entity_decode( get_the_title( $event->ID ), ENT_QUOTES, 'UTF-8' ),
                 'start_date'   => function_exists( 'tribe_get_start_date' ) ? tribe_get_start_date( $event->ID, false, DATE_ATOM ) : null,
                 'end_date'     => function_exists( 'tribe_get_end_date' ) ? tribe_get_end_date( $event->ID, false, DATE_ATOM ) : null,
                 'ticket_price' => $ticket_price,
