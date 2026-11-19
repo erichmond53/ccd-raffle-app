@@ -10,27 +10,34 @@ Living checklist — tick these off as they're done. Sequenced by lead time (lon
 - [x] **Begin Apple Developer Program *organization* enrollment.** This is the single longest lead-time item in the whole project (business identity/D-U-N-S verification can take days to weeks). Start the same day as everything else, completely independent of any coding progress. Apple ID is eric@standonitmarketing.com
   - 2026-11-15: new Apple Account (eric@standonitmarketing.com) required live Apple Support assistance to create (self-serve creation failed twice with a vague "account cannot be created" error, resolved by support via Eric's tablet).
   - 2026-11-15: enrollment form submitted. **Enrollment ID: 8NYHS6XTLW.** Currently in Apple's "verify legal signing authority" step (confirming Eric can bind Stand On It Marketing LLC to agreements) — Apple will email next instructions. Nothing to do here but wait for that email.
-- [ ] Sort out Mac / cloud-build access for Xcode. Blocks *any* iOS build — dev or release — regardless of how the Apple entitlement request is going. (You said this is "not a problem" — just flagging it stays on the critical path either way.)
-  - 2026-11-15: decided on a **used MacBook (laptop)**, not a Mac mini — only ~$20 more and gets portability as a bonus. Spec target stays the same: M2 or later, 16GB RAM, 512GB storage minimum (RAM/storage aren't upgradeable after purchase on Apple Silicon). No monitor/keyboard logistics to solve now that it's a laptop.
+- [x] Sort out Mac / cloud-build access for Xcode. **Done 2026-11-18/19**: used MacBook Air (Apple Silicon, macOS 27.2.1) arrived, set up as a remote build machine reached over SSH — Xcode 27.2, Flutter 3.50.0, CocoaPods, Android command-line SDK tools, and Temurin JDK 21 all installed and verified working (see memory `eric-macbook-dev-setup-2026-11-19`). No separate Claude Code instance needed on the Mac itself.
 
-## Done (WordPress side, built 2026-11-14)
+## Done (WordPress side)
 
-- [x] `CCD_RAFFLE_APP_API_KEY` secret generated and added to `wp-config.php` on the box.
-- [x] New REST endpoints (`GET /events`, `POST /sales`) built, deployed, and verified end-to-end against a throwaway test event — idempotency confirmed, ticket generation confirmed, pot update confirmed, buyer-confirmation SMS confirmed (via Twilio's own message log).
+- [x] `CCD_RAFFLE_APP_API_KEY` secret generated and added to `wp-config.php` on the box (2026-11-14).
+- [x] `GET /events`, `POST /sales` built, deployed, and verified end-to-end against a throwaway test event — idempotency confirmed, ticket generation confirmed, pot update confirmed, buyer-confirmation SMS confirmed (via Twilio's own message log).
+- [x] `GET /mobile-auth` built and deployed (2026-11-19) — mints a short-lived, one-time Square mobile authorization code server-side so the raw `CCD_SQUARE_ACCESS_TOKEN` never ships inside the app. Verified live against production. Needs `CCD_SQUARE_ACCESS_TOKEN` / `CCD_SQUARE_LOCATION_ID` / `CCD_SQUARE_ENV` in `wp-config.php` (sandbox values added 2026-11-19; swap for production before any real-money use).
+
+## Done (Flutter app — Phase 2, 2026-11-19)
+
+- [x] Real `square_mobile_payments_sdk` wired in on both platforms (native init, permissions, Gradle/Xcode config). Real `flutter build apk` and `flutter build ios --simulator` both succeed; iOS build launches and runs on the Simulator without crashing.
+- [ ] **Cannot take a real Tap to Pay charge yet** — blocked on the item below.
 
 ## After Apple org enrollment completes
 
-- [ ] Request the Tap to Pay on iPhone **Development**-tier entitlement. Turnaround is unpublished — submit the moment enrollment clears.
+- [ ] Request the Tap to Pay on iPhone **Development**-tier entitlement (`com.apple.developer.proximity-reader.payment.acceptance`). Turnaround is unpublished — submit the moment enrollment clears.
+- [ ] Once granted: add the "Tap to Pay on iPhone" capability in Xcode (Runner target → Signing & Capabilities → "+ Capability") — this is a GUI-only step, Xcode generates the entitlements file itself.
 - [ ] Register staff test iPhone UDIDs for development provisioning.
 
 ## Closer to season (once Android is further along)
 
 - [ ] Request the **Distribution**-tier entitlement (needed for TestFlight; note: Ad Hoc distribution reportedly doesn't work even with this tier granted — plan around Development-tier local installs during build-out, then TestFlight *internal* distribution only). Internal TestFlight does **not** require public App Store review for a 1-2-phone internal tool like this.
-- [ ] Obtain the **production** Square Application ID/Access Token (separate from the sandbox ones) once ready to test with real money.
+- [ ] Obtain the **production** Square Application ID/Access Token/Location ID (separate from the sandbox ones) once ready to test with real money — update both `wp-config.php` (`CCD_SQUARE_*`) and the hardcoded sandbox Application ID in `AppDelegate.swift` / `MainApplication.kt`.
 
 ## Android
 
-- [ ] Nothing blocking — no equivalent approval gate exists. A sideloaded APK onto the staff phone(s) is enough. A Google Play Console account is only needed if you'd rather use Play's internal testing track instead of a raw sideload.
+- [x] Toolchain set up on the Mac (no Android Studio needed, just the command-line SDK tools) — but this work can equally happen on Eric's PC instead, since Android builds don't require macOS.
+- [ ] No sideload/real-device test done yet. Nothing blocking — no equivalent approval gate exists. A Google Play Console account is only needed if you'd rather use Play's internal testing track instead of a raw sideload.
 
 ## Before going live at a real event
 
