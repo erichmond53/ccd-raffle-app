@@ -40,6 +40,8 @@ dependencies:
   path_provider: ^2.1.6
   intl: ^0.20.3
   path: ^1.9.1
+  square_mobile_payments_sdk: ^2026.10.3
+  uuid: ^4.6.0
 
 dev_dependencies:
   flutter_test:

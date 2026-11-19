@@ -6,7 +6,9 @@ plugins {
 
 android {
     namespace = "com.standonitmarketing.ccdraffle.ccd_raffle"
-    compileSdk = flutter.compileSdkVersion
+    // square_mobile_payments_sdk's dependencies require compiling against API 37+,
+    // overriding Flutter's default (36 as of this SDK version).
+    compileSdk = maxOf(37, flutter.compileSdkVersion)
     ndkVersion = flutter.ndkVersion
 
     compileOptions {
@@ -19,7 +21,8 @@ android {
         applicationId = "com.standonitmarketing.ccdraffle.ccd_raffle"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
-        minSdk = flutter.minSdkVersion
+        // minSdk 28 is required by square_mobile_payments_sdk, overriding Flutter's default.
+        minSdk = maxOf(28, flutter.minSdkVersion)
         targetSdk = flutter.targetSdkVersion
         // Uses the version code from pubspec.yaml. When using split APKs, 1000 * ABI_VERSION
         // is added automatically by Flutter. (https://developer.android.com/studio/build/configure-apk-splits#configure-APK-versions)
@@ -34,8 +37,17 @@ android {
             // TODO: Add your own signing config for the release build.
             // Signing with the debug keys for now, so `flutter run --release` works.
             signingConfig = signingConfigs.getByName("debug")
+            // ProGuard/R8 minification is incompatible with square_mobile_payments_sdk.
+            isMinifyEnabled = false
+            isShrinkResources = false
         }
     }
+}
+
+val squareSdkVersion = "2.7.0"
+
+dependencies {
+    implementation("com.squareup.sdk:mobile-payments-sdk:$squareSdkVersion")
 }
 
 kotlin {

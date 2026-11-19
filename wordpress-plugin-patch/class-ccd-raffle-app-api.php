@@ -94,6 +94,16 @@ class CCD_Raffle_App_Api {
                 'permission_callback' => array( $this, 'check_api_key' ),
             )
         );
+
+        register_rest_route(
+            'ccd-raffle/v1',
+            '/mobile-auth',
+            array(
+                'methods'             => 'GET',
+                'callback'            => array( $this, 'get_mobile_auth_code' ),
+                'permission_callback' => array( $this, 'check_api_key' ),
+            )
+        );
     }
 
     /**
@@ -294,6 +304,65 @@ class CCD_Raffle_App_Api {
         }
 
         return rest_ensure_response( $this->build_sale_response( $order->get_id(), $event_id, false ) );
+    }
+
+    /**
+     * GET /ccd-raffle/v1/mobile-auth
+     * Mints a short-lived (60 min), one-time-use Square "mobile authorization
+     * code" server-side and hands it to the app -- the raw Square access
+     * token (CCD_SQUARE_ACCESS_TOKEN) never leaves this server, per Square's
+     * own guidance for the Mobile Payments SDK. The app calls
+     * sdk.authorize(code, locationId) with the result of this endpoint,
+     * never with CCD_SQUARE_ACCESS_TOKEN directly.
+     */
+    public function get_mobile_auth_code( WP_REST_Request $request ) {
+        $token       = defined( 'CCD_SQUARE_ACCESS_TOKEN' ) ? CCD_SQUARE_ACCESS_TOKEN : '';
+        $location_id = defined( 'CCD_SQUARE_LOCATION_ID' ) ? CCD_SQUARE_LOCATION_ID : '';
+        $env         = defined( 'CCD_SQUARE_ENV' ) ? CCD_SQUARE_ENV : 'sandbox';
+
+        if ( empty( $token ) || empty( $location_id ) ) {
+            return new WP_Error(
+                'square_not_configured',
+                __( 'CCD_SQUARE_ACCESS_TOKEN / CCD_SQUARE_LOCATION_ID not set in wp-config.php.', 'ccd-raffle' ),
+                array( 'status' => 500 )
+            );
+        }
+
+        $base_url = ( 'production' === $env )
+            ? 'https://connect.squareup.com'
+            : 'https://connect.squareupsandbox.com';
+
+        $response = wp_remote_post(
+            $base_url . '/mobile/authorization-code',
+            array(
+                'headers' => array(
+                    'Square-Version' => '2026-10-15',
+                    'Authorization'  => 'Bearer ' . $token,
+                    'Content-Type'   => 'application/json',
+                ),
+                'body'    => wp_json_encode( array( 'location_id' => $location_id ) ),
+                'timeout' => 15,
+            )
+        );
+
+        if ( is_wp_error( $response ) ) {
+            return new WP_Error( 'server_error', 'Could not reach Square: ' . $response->get_error_message(), array( 'status' => 500 ) );
+        }
+
+        $code    = wp_remote_retrieve_response_code( $response );
+        $body    = json_decode( wp_remote_retrieve_body( $response ), true );
+
+        if ( 200 !== $code || empty( $body['authorization_code'] ) ) {
+            return new WP_Error( 'server_error', 'Square did not return an authorization code.', array( 'status' => 500 ) );
+        }
+
+        return rest_ensure_response(
+            array(
+                'authorization_code' => $body['authorization_code'],
+                'expires_at'         => $body['expires_at'],
+                'location_id'        => $location_id,
+            )
+        );
     }
 
     /**

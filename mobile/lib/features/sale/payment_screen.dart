@@ -1,17 +1,12 @@
-import 'dart:math';
 import 'package:material_ui/material_ui.dart';
+import 'package:square_mobile_payments_sdk/square_mobile_payments_sdk.dart';
 import '../../core/models/local_sale.dart';
 import '../../core/models/sale_draft.dart';
+import '../../core/square_payment_service.dart';
 import '../../data/local_sales_db.dart';
 import '../../data/sync_service.dart';
 import 'success_screen.dart';
 
-/// PHASE 1 STUB: the real Square Mobile Payments SDK (Tap to Pay) isn't wired
-/// in yet — see docs/setup-checklist.md. This screen stands in for it so the
-/// rest of the app (local queue, sync, history) can be built and tested now.
-/// Replace [_fakeChargeCard] with a real `square_mobile_payments_sdk` charge
-/// in Phase 2; nothing else in this screen should need to change, since the
-/// local-row-first invariant below is exactly what the real SDK flow needs too.
 class PaymentScreen extends StatefulWidget {
   final SaleDraft draft;
   const PaymentScreen({super.key, required this.draft});
@@ -21,18 +16,39 @@ class PaymentScreen extends StatefulWidget {
 }
 
 class _PaymentScreenState extends State<PaymentScreen> {
+  final _square = SquarePaymentService();
   bool _charging = false;
+  String? _errorMessage;
 
-  Future<void> _fakeChargeCard() async {
-    setState(() => _charging = true);
-    await Future.delayed(const Duration(seconds: 1)); // pretend the tap happened
+  Future<void> _chargeCard() async {
+    setState(() {
+      _charging = true;
+      _errorMessage = null;
+    });
 
-    // A real Square charge's payment ID looks like "sq0idp-...". Prefixing
-    // this stub clearly as fake so it's unmistakable in logs/History if this
-    // ever leaked into a real build.
-    final fakePaymentId = 'stub-${DateTime.now().millisecondsSinceEpoch}-${Random().nextInt(99999)}';
-
-    await _recordSaleAndProceed(fakePaymentId);
+    try {
+      final squarePaymentId = await _square.charge(amountCents: widget.draft.amountChargedCents);
+      await _recordSaleAndProceed(squarePaymentId);
+    } on PaymentError catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _charging = false;
+        // A staff-initiated cancel isn't an error worth alarming over.
+        _errorMessage = e.code == PaymentErrorCode.canceled ? 'Cancelled.' : e.message;
+      });
+    } on AuthorizeError catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _charging = false;
+        _errorMessage = 'Could not authorize with Square: ${e.message}';
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _charging = false;
+        _errorMessage = e.toString();
+      });
+    }
   }
 
   /// The local row is written the instant the charge succeeds, before any
@@ -90,25 +106,23 @@ class _PaymentScreenState extends State<PaymentScreen> {
                 children: [
                   CircularProgressIndicator(),
                   SizedBox(height: 12),
-                  Text('Processing...'),
+                  Text('Hold card near the top of the phone...'),
                 ],
               )
             else
               Column(
                 children: [
                   const Icon(Icons.contactless, size: 64),
-                  const SizedBox(height: 12),
-                  const Text(
-                    'DEV STUB — real Tap to Pay not wired in yet',
-                    style: TextStyle(color: Colors.orange, fontWeight: FontWeight.bold),
-                    textAlign: TextAlign.center,
-                  ),
                   const SizedBox(height: 20),
+                  if (_errorMessage != null) ...[
+                    Text(_errorMessage!, style: const TextStyle(color: Colors.red), textAlign: TextAlign.center),
+                    const SizedBox(height: 16),
+                  ],
                   ElevatedButton(
-                    onPressed: _fakeChargeCard,
-                    child: const Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-                      child: Text('Simulate Payment Success'),
+                    onPressed: _chargeCard,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+                      child: Text(_errorMessage != null ? 'Try Again' : 'Charge Card'),
                     ),
                   ),
                 ],

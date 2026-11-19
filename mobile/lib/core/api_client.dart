@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'api_config.dart';
+import 'models/mobile_auth.dart';
 import 'models/raffle_event.dart';
 import 'models/sale_response.dart';
 
@@ -60,6 +61,20 @@ class ApiClient {
     }
 
     return SaleResponse.fromJson(jsonDecode(res.body) as Map<String, dynamic>);
+  }
+
+  /// A short-lived (60 min), one-time-use Square authorization code, minted
+  /// server-side. The app never sees or stores the real Square access token
+  /// — see docs/api-contract.md and the WordPress /mobile-auth endpoint.
+  Future<MobileAuth> getMobileAuth() async {
+    final uri = Uri.parse('${ApiConfig.baseUrl}/mobile-auth');
+    final res = await http.get(uri, headers: _headers);
+
+    if (res.statusCode != 200) {
+      throw _exceptionFor(res);
+    }
+
+    return MobileAuth.fromJson(jsonDecode(res.body) as Map<String, dynamic>);
   }
 
   ApiException _exceptionFor(http.Response res) {
