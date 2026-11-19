@@ -20,14 +20,16 @@ class SuccessScreen extends StatelessWidget {
             Icon(Icons.check_circle, size: 72, color: Colors.green[600]),
             const SizedBox(height: 16),
             Text(
-              '${sale.quantity} ticket(s) sold',
+              sale.isDayOfParking ? '${sale.quantity} parking pass(es) sold' : '${sale.quantity} ticket(s) sold',
               style: Theme.of(context).textTheme.headlineSmall,
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 8),
             Text(sale.eventTitle, textAlign: TextAlign.center),
             const SizedBox(height: 24),
-            if (synced) ...[
+            if (synced && sale.isDayOfParking)
+              const Text('Confirmed.')
+            else if (synced) ...[
               Text('Ticket numbers: ${sale.ticketNumbersFormatted}', style: Theme.of(context).textTheme.titleMedium),
               const SizedBox(height: 8),
               Text('Pot: \$${sale.potValue?.toStringAsFixed(0) ?? '—'}'),

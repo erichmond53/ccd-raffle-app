@@ -4,6 +4,7 @@ import '../../core/api_client.dart';
 import '../../core/models/raffle_event.dart';
 import '../../core/models/sale_draft.dart';
 import '../sale/quantity_screen.dart';
+import '../sale/sale_type_screen.dart';
 
 class EventPickerScreen extends StatefulWidget {
   const EventPickerScreen({super.key});
@@ -76,12 +77,14 @@ class _EventPickerScreenState extends State<EventPickerScreen> {
                 child: ListTile(
                   title: Text(e.title, style: const TextStyle(fontWeight: FontWeight.bold)),
                   subtitle: Text(
-                    '${DateFormat.yMMMd().format(e.startDate)} · \$${e.ticketPrice.toStringAsFixed(0)}/ticket · Pot: \$${e.potValue.toStringAsFixed(0)}',
+                    '${DateFormat.yMMMd().format(e.startDate)} · \$${e.ticketPrice.toStringAsFixed(0)}/ticket · Pot: \$${e.potValue.toStringAsFixed(0)}'
+                    '${e.dayofAvailable ? ' · Parking \$${e.dayofPrice?.toStringAsFixed(0)}' : ''}',
                   ),
                   trailing: const Icon(Icons.chevron_right),
                   onTap: () {
+                    final draft = SaleDraft(event: e);
                     Navigator.of(context).push(MaterialPageRoute(
-                      builder: (_) => QuantityScreen(draft: SaleDraft(event: e)),
+                      builder: (_) => e.dayofAvailable ? SaleTypeScreen(draft: draft) : QuantityScreen(draft: draft),
                     ));
                   },
                 ),

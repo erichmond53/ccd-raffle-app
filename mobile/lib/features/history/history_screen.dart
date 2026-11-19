@@ -103,6 +103,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                         ),
                         title: Text(s.eventTitle),
                         subtitle: Text(
+                          '${s.isDayOfParking ? "Parking" : "Raffle"} · '
                           '${s.buyerFirstName} ${s.buyerLastName} · '
                           '${DateFormat.jm().format(s.createdAt)}\n'
                           '${_statusLabel(s.syncStatus)}'

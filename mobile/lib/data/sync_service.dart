@@ -30,6 +30,7 @@ class SyncService {
     try {
       final SaleResponse res = await _api.postSale(
         eventId: sale.eventId,
+        saleType: sale.saleType,
         quantity: sale.quantity,
         buyerFirstName: sale.buyerFirstName,
         buyerLastName: sale.buyerLastName,

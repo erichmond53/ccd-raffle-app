@@ -62,6 +62,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
       squarePaymentId: squarePaymentId,
       eventId: d.event.eventId,
       eventTitle: d.event.title,
+      saleType: saleTypeToApiString(d.saleType),
       quantity: d.quantity,
       buyerFirstName: d.buyerFirstName,
       buyerLastName: d.buyerLastName,

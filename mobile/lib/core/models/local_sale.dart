@@ -22,14 +22,17 @@ String syncStatusToString(SyncStatus s) {
   }
 }
 
-/// A raffle-ticket sale recorded on the device. Written the moment the payment
-/// succeeds, before the WordPress sync call is even attempted — this row is the
-/// proof money was taken. The sync call is best-effort on top, never the reverse.
+/// A sale recorded on the device — a raffle ticket batch or a day-of parking
+/// pass, distinguished by [saleType] ('raffle' or 'dayof_parking', matching
+/// the API's sale_type values). Written the moment the payment succeeds,
+/// before the WordPress sync call is even attempted — this row is the proof
+/// money was taken. The sync call is best-effort on top, never the reverse.
 class LocalSale {
   final int? id;
   final String squarePaymentId;
   final int eventId;
   final String eventTitle;
+  final String saleType;
   final int quantity;
   final String buyerFirstName;
   final String buyerLastName;
@@ -49,6 +52,7 @@ class LocalSale {
     required this.squarePaymentId,
     required this.eventId,
     required this.eventTitle,
+    this.saleType = 'raffle',
     required this.quantity,
     required this.buyerFirstName,
     required this.buyerLastName,
@@ -64,6 +68,8 @@ class LocalSale {
     this.retryCount = 0,
   });
 
+  bool get isDayOfParking => saleType == 'dayof_parking';
+
   LocalSale copyWith({
     SyncStatus? syncStatus,
     int? orderId,
@@ -77,6 +83,7 @@ class LocalSale {
       squarePaymentId: squarePaymentId,
       eventId: eventId,
       eventTitle: eventTitle,
+      saleType: saleType,
       quantity: quantity,
       buyerFirstName: buyerFirstName,
       buyerLastName: buyerLastName,
@@ -99,6 +106,7 @@ class LocalSale {
       'square_payment_id': squarePaymentId,
       'event_id': eventId,
       'event_title': eventTitle,
+      'sale_type': saleType,
       'quantity': quantity,
       'buyer_first_name': buyerFirstName,
       'buyer_last_name': buyerLastName,
@@ -121,6 +129,7 @@ class LocalSale {
       squarePaymentId: row['square_payment_id'] as String,
       eventId: row['event_id'] as int,
       eventTitle: row['event_title'] as String,
+      saleType: row['sale_type'] as String? ?? 'raffle',
       quantity: row['quantity'] as int,
       buyerFirstName: row['buyer_first_name'] as String,
       buyerLastName: row['buyer_last_name'] as String,

@@ -3,20 +3,23 @@ class SaleResponse {
   final bool alreadyExisted;
   final int orderId;
   final int eventId;
+  final String saleType;
   final int quantity;
+  // Raffle-only — null/empty for a day-of parking sale.
   final List<int> ticketNumbers;
-  final String ticketNumbersFormatted;
-  final double potValue;
+  final String? ticketNumbersFormatted;
+  final double? potValue;
 
   SaleResponse({
     required this.success,
     required this.alreadyExisted,
     required this.orderId,
     required this.eventId,
+    required this.saleType,
     required this.quantity,
     required this.ticketNumbers,
-    required this.ticketNumbersFormatted,
-    required this.potValue,
+    this.ticketNumbersFormatted,
+    this.potValue,
   });
 
   factory SaleResponse.fromJson(Map<String, dynamic> json) {
@@ -25,10 +28,11 @@ class SaleResponse {
       alreadyExisted: json['already_existed'] as bool,
       orderId: json['order_id'] as int,
       eventId: json['event_id'] as int,
+      saleType: json['sale_type'] as String? ?? 'raffle',
       quantity: json['quantity'] as int,
-      ticketNumbers: (json['ticket_numbers'] as List).map((e) => e as int).toList(),
-      ticketNumbersFormatted: json['ticket_numbers_formatted'] as String,
-      potValue: (json['pot_value'] as num).toDouble(),
+      ticketNumbers: (json['ticket_numbers'] as List?)?.map((e) => e as int).toList() ?? const [],
+      ticketNumbersFormatted: json['ticket_numbers_formatted'] as String?,
+      potValue: (json['pot_value'] as num?)?.toDouble(),
     );
   }
 }

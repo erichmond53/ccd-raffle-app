@@ -39,11 +39,14 @@ class _QuantityScreenState extends State<QuantityScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text('How many tickets?', style: Theme.of(context).textTheme.titleLarge),
+            Text(
+              draft.saleType == SaleType.dayOfParking ? 'How many parking passes?' : 'How many tickets?',
+              style: Theme.of(context).textTheme.titleLarge,
+            ),
             const SizedBox(height: 16),
             Wrap(
               spacing: 12,
-              children: [5, 10, 20].map((q) {
+              children: (draft.saleType == SaleType.dayOfParking ? [1, 2, 3, 4] : [5, 10, 20]).map((q) {
                 final selected = draft.quantity == q;
                 return ChoiceChip(
                   label: Text('$q'),

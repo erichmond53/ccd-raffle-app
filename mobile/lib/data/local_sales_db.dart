@@ -26,6 +26,7 @@ class LocalSalesDb {
             square_payment_id TEXT UNIQUE NOT NULL,
             event_id INTEGER NOT NULL,
             event_title TEXT NOT NULL,
+            sale_type TEXT NOT NULL DEFAULT 'raffle',
             quantity INTEGER NOT NULL,
             buyer_first_name TEXT NOT NULL,
             buyer_last_name TEXT NOT NULL,

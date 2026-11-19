@@ -31,6 +31,7 @@ class ApiClient {
   /// rather than creating a duplicate order.
   Future<SaleResponse> postSale({
     required int eventId,
+    String saleType = 'raffle',
     required int quantity,
     required String buyerFirstName,
     required String buyerLastName,
@@ -45,6 +46,7 @@ class ApiClient {
       headers: _headers,
       body: jsonEncode({
         'event_id': eventId,
+        'sale_type': saleType,
         'quantity': quantity,
         'buyer_first_name': buyerFirstName,
         'buyer_last_name': buyerLastName,

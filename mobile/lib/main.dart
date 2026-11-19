@@ -12,7 +12,7 @@ class CcdRaffleApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'CCD Raffle',
+      title: 'Cars & Coffee Darien',
       theme: ThemeData(
         colorSchemeSeed: Colors.deepOrange,
         useMaterial3: true,
@@ -28,11 +28,18 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('CCD Raffle')),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
+            Image.asset('assets/logo.png', width: 160, height: 160),
+            const SizedBox(height: 12),
+            Text(
+              'Cars & Coffee Darien',
+              style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 48),
             ElevatedButton.icon(
               icon: const Icon(Icons.confirmation_number),
               label: const Text('New Sale'),
